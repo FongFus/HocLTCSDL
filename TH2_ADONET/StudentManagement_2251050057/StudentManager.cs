@@ -19,7 +19,7 @@ namespace StudentManagement_2251050057
             connectionString = ConfigurationManager.ConnectionStrings["StudentDB"].ConnectionString;
         }
 
-        // 1. Hiển thị danh sách sinh viên
+        // 1. Hiển thị danh sách sinh viên (cho console)
         public void DisplayStudents()
         {
             using (SqlConnection conn = new SqlConnection(connectionString))
@@ -43,6 +43,28 @@ namespace StudentManagement_2251050057
                     Console.WriteLine("Loi: " + ex.Message);
                 }
             }
+        }
+
+        // 1.1. Lấy danh sách sinh viên dưới dạng DataTable (cho DataGridView)
+        public DataTable GetStudentsDataTable()
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                string query = "SELECT * FROM Students";
+                SqlCommand cmd = new SqlCommand(query, conn);
+                try
+                {
+                    conn.Open();
+                    SqlDataAdapter adapter = new SqlDataAdapter(cmd);
+                    adapter.Fill(dt);
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Loi: " + ex.Message);
+                }
+            }
+            return dt;
         }
 
         // 2. Thêm sinh viên mới
@@ -94,7 +116,6 @@ namespace StudentManagement_2251050057
                 }
             }
         }
-
 
         // 4. Xóa sinh viên
         public void DeleteStudent(int studentID)
