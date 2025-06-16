@@ -34,16 +34,15 @@ namespace TH2_ADONET
 
         private void btnConnect_Click(object sender, EventArgs e)
         {
-
             if (string.IsNullOrWhiteSpace(txtServerName.Text) || string.IsNullOrWhiteSpace(txtDatabaseName.Text))
             {
-                MessageBox.Show("Vui lòng nhập Server Name và Database Name!");
+                MessageBox.Show("Vui lòng nhập Server Name và Database Name!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
             if (rbtnSSA.Checked && (string.IsNullOrWhiteSpace(txtUserName.Text) || string.IsNullOrWhiteSpace(txtPassword.Text)))
             {
-                MessageBox.Show("Vui lòng nhập User Name và Password cho SQL Server Authentication!");
+                MessageBox.Show("Vui lòng nhập User Name và Password cho SQL Server Authentication!", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
@@ -57,18 +56,27 @@ namespace TH2_ADONET
                 connectionString = $"Server={txtServerName.Text};Database={txtDatabaseName.Text};User Id={txtUserName.Text};Password={txtPassword.Text};";
             }
 
-
-            using (connection = new SqlConnection(connectionString))
+            // Initialize the connection if not already initialized
+            if (connection == null || connection.State == ConnectionState.Closed || connection.State == ConnectionState.Broken)
             {
-                try
+                connection = new SqlConnection(connectionString);
+            }
+
+            try
+            {
+                if (connection.State != ConnectionState.Open)
                 {
                     connection.Open();
-                    MessageBox.Show("Kết nối thành công!");
+                    MessageBox.Show("Kết nối thành công!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    btnConnect.Enabled = false; // Disable Connect button
+                    btnDisconnect.Enabled = true; // Enable Disconnect button
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Lỗi kết nối: {ex.Message}");
-                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Lỗi kết nối: {ex.Message}", "Lỗi", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                connection?.Dispose();
+                connection = null;
             }
         }
 
@@ -77,12 +85,28 @@ namespace TH2_ADONET
             if (connection != null && connection.State == ConnectionState.Open)
             {
                 connection.Close();
-                MessageBox.Show("Đã ngắt kết nối!");
+                connection.Dispose();
+                connection = null;
+                MessageBox.Show("Đã ngắt kết nối!", "Thành công", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                btnConnect.Enabled = true; // Re-enable Connect button
+                btnDisconnect.Enabled = false; // Disable Disconnect button
             }
             else
             {
-                MessageBox.Show("Không có kết nối đang hoạt động!");
+                MessageBox.Show("Không có kết nối đang hoạt động!", "Thông báo", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
+        }
+
+        // Ensure connection is closed when the form closes
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (connection != null && connection.State == ConnectionState.Open)
+            {
+                connection.Close();
+                connection.Dispose();
+                connection = null;
+            }
+            base.OnFormClosing(e);
         }
     }
 }
