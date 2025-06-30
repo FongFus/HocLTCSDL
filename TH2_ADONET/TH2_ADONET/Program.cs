@@ -16,7 +16,9 @@ namespace TH2_ADONET
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Bai01());
+            //Application.Run(new Bai01());
+            Application.Run(new Bai02());
+
         }
     }
 }
